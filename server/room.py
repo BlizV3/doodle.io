@@ -28,6 +28,7 @@ class RoomState:
 
 
 class Room:
+    # Initialize all room state from settings, including time limits, word config, and player tracking.
     def __init__(self, room_id: str, word_mgr: WordManager, settings: dict | None = None):
         s = settings or {}
         self.room_id      = room_id
@@ -74,6 +75,7 @@ class Room:
         self._broadcast_player_list()
         return True
 
+    # Remove a player; end the round if the drawer left, or end the game if too few players remain.
     def remove_player(self, player: Player):
         with self.lock:
             if player not in self.players:
@@ -100,6 +102,7 @@ class Room:
             return
         self.start_game()
 
+    # Reset all scores, broadcast GAME_START, and kick off the first turn.
     def start_game(self):
         with self.lock:
             if self.state != RoomState.WAITING or len(self.players) < 2:
@@ -114,6 +117,7 @@ class Room:
         self._broadcast(pack(GAME_START, total_rounds=self.total_rounds))
         self._next_turn()
 
+    # Advance to the next drawer; increment the round counter or end the game when all turns are done.
     def _next_turn(self):
         with self.lock:
             if not self.players:
@@ -144,12 +148,14 @@ class Room:
         self._send(drawer, pack(CHOOSE_WORD, words=self._word_choices))
         self._start_timer(CHOOSE_TIME, self._on_choose_timeout)
 
+    # Select word choices from the custom word list or the shared word bank.
     def _pick_words(self) -> list[str]:
         if self.custom_words and self.word_list:
             pool = self.word_list
             return random.sample(pool, min(self.word_count, len(pool)))
         return self.word_mgr.pick_words(self.word_count)
 
+    # Accept the drawer's word choice and transition to the drawing phase.
     def handle_word_choice(self, player: Player, word: str):
         with self.lock:
             if self.state != RoomState.CHOOSING:
@@ -162,6 +168,7 @@ class Room:
             self.state = RoomState.DRAWING
         self._begin_drawing_phase()
 
+    # Auto-select a random word when the drawer's choose timer expires.
     def _on_choose_timeout(self):
         with self.lock:
             if self.state != RoomState.CHOOSING:
@@ -170,6 +177,7 @@ class Room:
             self.state = RoomState.DRAWING
         self._begin_drawing_phase()
 
+    # Broadcast ROUND_START messages to all players and launch the drawing countdown timer.
     def _begin_drawing_phase(self):
         word   = self._current_word
         drawer = self.players[self._drawer_idx]
@@ -189,6 +197,7 @@ class Room:
         )
         self._start_draw_timer()
 
+    # Launch the drawing countdown thread, scheduling hint reveals at even intervals.
     def _start_draw_timer(self):
         self._timer_ver += 1
         version    = self._timer_ver
@@ -226,6 +235,7 @@ class Room:
 
         threading.Thread(target=loop, daemon=True).start()
 
+    # Run a generic countdown thread that fires the callback when the duration expires.
     def _start_timer(self, duration: float, callback):
         self._timer_ver += 1
         version = self._timer_ver
@@ -243,12 +253,14 @@ class Room:
 
         threading.Thread(target=run, daemon=True).start()
 
+    # Reveal one random unrevealed letter and broadcast the updated hint to all players.
     def _reveal_hint(self):
         with self.lock:
             self._revealed = WordManager.reveal_random_letter(self._current_word, self._revealed)
             hint = WordManager.make_hint(self._current_word, self._revealed)
         self._broadcast(pack(HINT_UPDATE, hint=hint))
 
+    # Evaluate a player's guess: award points for correct answers and route the chat message.
     def handle_guess(self, player: Player, text: str):
         route      = None
         send_text  = text
@@ -296,32 +308,38 @@ class Room:
             if all_guessed:
                 self._end_round()
 
+    # Broadcast a draw stroke from the current drawer to all other players.
     def handle_draw(self, player: Player, data: dict):
         if not player.is_drawing or self.state != RoomState.DRAWING:
             return
         self._broadcast(pack(data["type"], **{k: v for k, v in data.items() if k != "type"}),
                         exclude=player)
 
+    # Broadcast a fill action from the current drawer to all other players.
     def handle_draw_fill(self, player: Player, x: int, y: int, color: list):
         if not player.is_drawing or self.state != RoomState.DRAWING:
             return
         self._broadcast(pack(DRAW_FILL, x=x, y=y, color=color), exclude=player)
 
+    # Broadcast a canvas clear from the current drawer to all other players.
     def handle_draw_clear(self, player: Player):
         if not player.is_drawing or self.state != RoomState.DRAWING:
             return
         from shared.protocol import DRAW_CLEAR
         self._broadcast(pack(DRAW_CLEAR), exclude=player)
 
+    # Broadcast a full canvas snapshot from the current drawer to all other players.
     def handle_draw_snapshot(self, player: Player, data: str):
         if not player.is_drawing or self.state != RoomState.DRAWING:
             return
         self._broadcast(pack(DRAW_SNAPSHOT, data=data), exclude=player)
 
+    # End the round automatically when the drawing timer expires.
     def _on_draw_timeout(self):
         if self.state == RoomState.DRAWING:
             self._end_round()
 
+    # Award drawer points, broadcast ROUND_END with scores, and schedule the next turn.
     def _end_round(self, forced: bool = False):
         with self.lock:
             if self.state not in (RoomState.DRAWING, RoomState.CHOOSING):
@@ -345,6 +363,7 @@ class Room:
         self._broadcast(pack(ROUND_END, word=word, scores=scores_snap))
         self._start_timer(END_TIME, self._next_turn)
 
+    # Sort final scores, broadcast GAME_END, and schedule a room reset after 10 seconds.
     def _end_game(self):
         with self.lock:
             self.state  = RoomState.GAME_END
@@ -355,6 +374,7 @@ class Room:
         self._broadcast(pack(GAME_END, scores=scores_snap))
         self._start_timer(10, self._reset)
 
+    # Reset all player and room state back to WAITING for a fresh game.
     def _reset(self):
         with self.lock:
             for p in self.players:
@@ -367,6 +387,7 @@ class Room:
 
     # ── Helpers ──────────────────────────────────────────────────────────────
 
+    # Send data to all connected players, removing any whose connection has broken.
     def _broadcast(self, data: bytes, exclude: Player = None):
         dead = []
         with self.lock:
@@ -381,12 +402,14 @@ class Room:
         for p in dead:
             self.remove_player(p)
 
+    # Send data to one player; remove them from the room if the connection is broken.
     def _send(self, player: Player, data: bytes):
         try:
             player.conn.sendall(data)
         except OSError:
             self.remove_player(player)
 
+    # Send data only to the drawer and players who have already guessed correctly this round.
     def _send_to_guessed_team(self, data: bytes):
         with self.lock:
             targets = [p for p in self.players if p.is_drawing or p.has_guessed]
@@ -399,6 +422,7 @@ class Room:
         for p in dead:
             self.remove_player(p)
 
+    # Kick a named player if the requester is the room owner; disconnect the target's socket.
     def handle_kick_player(self, requester: Player, target_name: str):
         if requester.name != self._owner_name:
             return
@@ -415,6 +439,7 @@ class Room:
         except OSError:
             pass
 
+    # Notify all players the room is closing and disconnect every socket.
     def handle_close_room(self, requester: Player):
         if requester.name != self._owner_name:
             return
@@ -434,6 +459,7 @@ class Room:
             except OSError:
                 pass
 
+    # Build and broadcast a PLAYER_LIST snapshot to all players in the room.
     def _broadcast_player_list(self):
         with self.lock:
             player_dicts = [p.to_dict() for p in self.players]

@@ -9,7 +9,7 @@ from client.components.input_box import InputBox
 import client.sounds as sounds
 
 W, H = 1280, 720
-PFP_SIZE = 140   # diameter of the pfp displayed on this screen
+PFP_SIZE = 140
 
 from client.pfp import load_pfps as _load_pfps_lib
 
@@ -17,6 +17,7 @@ def _load_pfps(radius: int) -> list[pygame.Surface]:
     return _load_pfps_lib(radius)
 
 
+# Draw a numbered colored circle as a fallback avatar when no pfp image is available.
 def _draw_circle_pfp(surface, cx, cy, idx):
     color = AVATAR_COLORS[idx % len(AVATAR_COLORS)]
     pygame.draw.circle(surface, color, (cx, cy), PFP_SIZE // 2)
@@ -26,6 +27,7 @@ def _draw_circle_pfp(surface, cx, cy, idx):
 
 
 class ProfileScreen:
+    # Set up all layout rects, the name input box, and load pfp thumbnails.
     def __init__(self, fonts: dict, name: str = "", pfp_idx: int = 0):
         self.fonts  = fonts
         self.error  = ""
@@ -49,16 +51,20 @@ class ProfileScreen:
 
     # ── input ─────────────────────────────────────────────────────────────────
 
+    # Handles clicks on main components.
     def handle_event(self, event) -> dict | None:
         self._name_box.handle_event(event)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            #pfp
             if self._pfp_rect.collidepoint(event.pos):
                 sounds.play("click")
                 self._idx = (self._idx + 1) % self._count
+            #design
             elif self._design_btn.collidepoint(event.pos):
                 sounds.play("click")
                 return {"action": "design_pfp", "name": self._name_box.text}
+            #accept
             elif self._accept_btn.collidepoint(event.pos):
                 sounds.play("click")
                 return self._accept()
@@ -68,6 +74,7 @@ class ProfileScreen:
 
         return None
 
+    # Validate the name field and return a profile_done action dict (or set an error).
     def _accept(self) -> dict | None:
         name = self._name_box.text.strip()
         if not name:
@@ -82,6 +89,7 @@ class ProfileScreen:
 
     # ── render ─────────────────────────────────────────────────────────────────
 
+    # Draw the profile creation screen.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 

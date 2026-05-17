@@ -10,6 +10,7 @@ _cache: dict[str, "pygame.mixer.Sound | None"] = {}
 _ready = False
 
 
+# Initialize pygame.mixer; if it fails, sounds are silently disabled for the session.
 def init():
     global _ready
     try:
@@ -19,6 +20,7 @@ def init():
         _ready = False
 
 
+# Play a named sound effect, loading and caching it on first use.
 def play(name: str):
     if not _ready:
         return
@@ -29,6 +31,7 @@ def play(name: str):
         snd.play()
 
 
+# Try to load a sound file from the sounds dir, checking .ogg, .wav, and .mp3 extensions.
 def _load(name: str) -> "pygame.mixer.Sound | None":
     for ext in (".ogg", ".wav", ".mp3"):
         path = os.path.join(_DIR, name + ext)

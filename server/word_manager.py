@@ -3,6 +3,7 @@ import os
 
 
 class WordManager:
+    # Resolve the word list file path and load all non-empty words from it.
     def __init__(self, words_file: str = None):
         if words_file is None:
             root = os.path.join(os.path.dirname(__file__), "..")

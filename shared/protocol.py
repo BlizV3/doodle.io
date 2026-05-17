@@ -33,6 +33,7 @@ CHECK_CODE   = "check_code"    # {room_code}  client→server (no JOIN, just a p
 CODE_RESULT  = "code_result"   # {ok, error}  server→client
 
 
+# Serialize a message type and kwargs into a newline-terminated UTF-8 JSON packet.
 def pack(msg_type: str, **kwargs) -> bytes:
     msg = {"type": msg_type}
     msg.update(kwargs)

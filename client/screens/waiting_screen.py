@@ -14,6 +14,7 @@ _ASSETS_DIR = os.path.normpath(
     os.path.join(os.path.dirname(__file__), "..", "assets")
 )
 
+# Load an asset image and scale it to the given square size.
 def _load_icon(name: str, size: int) -> pygame.Surface:
     path = os.path.join(_ASSETS_DIR, name)
     img  = pygame.image.load(path).convert_alpha()
@@ -39,6 +40,7 @@ class WaitingScreen:
     _CARD_H = 108
     _KICK_W =  26
 
+    # Set up all button rects, icons, and confirmation dialog rects for the lobby screen.
     def __init__(self, fonts: dict, local_name: str):
         self.fonts       = fonts
         self.local_name  = local_name
@@ -73,6 +75,7 @@ class WaitingScreen:
 
     # ── public API ────────────────────────────────────────────────────────────
 
+    # Refresh the player list, ownership, and status message from the latest server data.
     def update_players(self, players: list[dict], owner_name: str = "",
                        max_players: int = 6, room_code: str = "",
                        room_name: str = ""):
@@ -89,6 +92,7 @@ class WaitingScreen:
 
     # ── events ────────────────────────────────────────────────────────────────
 
+    # Handle clicks on start, leave, close-room, kick, and confirmation dialog buttons.
     def handle_event(self, event) -> dict | None:
         if event.type != pygame.MOUSEBUTTONDOWN or event.button != 1:
             return None
@@ -147,6 +151,7 @@ class WaitingScreen:
 
     # ── render ────────────────────────────────────────────────────────────────
 
+    # Draw the lobby: player grid, bottom bar, and any active confirmation dialog.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 
@@ -188,6 +193,7 @@ class WaitingScreen:
 
     # ── private helpers ───────────────────────────────────────────────────────
 
+    # Draw player avatar cards in a grid, with kick buttons for the room owner.
     def _draw_player_grid(self, surface: pygame.Surface):
         self._kick_rects.clear()
         cw, ch = self._CARD_W, self._CARD_H
@@ -232,6 +238,7 @@ class WaitingScreen:
                 draw_text(surface, "x", self.fonts["sm"], WHITE,
                           kr.centerx, kr.centery, anchor="center")
 
+    # Draw the room code, leave button, and owner-only close-room and start buttons.
     def _draw_bottom_bar(self, surface: pygame.Surface):
         mx, my = pygame.mouse.get_pos()
 
@@ -260,6 +267,7 @@ class WaitingScreen:
             draw_text(surface, "Start Game", self.fonts["btn_md"], WHITE,
                       self._start_btn.centerx, self._start_btn.centery, anchor="center")
 
+    # Draw a square icon button with SRCALPHA color and a hover highlight.
     def _draw_sq_btn(self, surface, btn, icon, col_normal, col_hover, mx, my):
         col = col_hover if btn.collidepoint(mx, my) else col_normal
         panel = pygame.Surface((btn.width, btn.height), pygame.SRCALPHA)
@@ -267,6 +275,7 @@ class WaitingScreen:
         surface.blit(panel, btn.topleft)
         surface.blit(icon, icon.get_rect(center=btn.center))
 
+    # Draw the close-room confirmation modal with a translucent veil.
     def _draw_confirm_dialog(self, surface: pygame.Surface):
         veil = pygame.Surface((W, H), pygame.SRCALPHA)
         veil.fill((0, 0, 0, 165))
@@ -293,6 +302,7 @@ class WaitingScreen:
         draw_text(surface, "Cancel", self.fonts["md"], WHITE,
                   self._confirm_no.centerx, self._confirm_no.centery, anchor="center")
 
+    # Draw the leave-room confirmation modal with a translucent veil.
     def _draw_leave_confirm_dialog(self, surface: pygame.Surface):
         veil = pygame.Surface((W, H), pygame.SRCALPHA)
         veil.fill((0, 0, 0, 165))

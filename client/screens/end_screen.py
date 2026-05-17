@@ -14,12 +14,14 @@ MEDAL_COLORS = [(255, 215, 0), (192, 192, 192), (205, 127, 50)]  # gold, silver,
 class EndScreen:
     """Final scoreboard shown when the game ends."""
 
+    # Store scores and create the Play Again button rect.
     def __init__(self, fonts: dict, scores: list[dict]):
         self.fonts  = fonts
         self.scores = scores
         self._play_btn = pygame.Rect(W // 2 - 110, H - 110, 220, 54)
         self._hovered: str | None = None
 
+    # Detect a click on Play Again and return the play_again action dict.
     def handle_event(self, event) -> dict | None:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self._play_btn.collidepoint(event.pos):
@@ -30,6 +32,7 @@ class EndScreen:
     def update(self, dt_ms: int):
         pass
 
+    # Draw the final scoreboard with medal highlights and the Play Again button.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 

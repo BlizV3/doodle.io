@@ -6,6 +6,7 @@ from client.utils import WHITE, BORDER, ACCENT, TEXT_DARK
 class TextArea:
     """Simple multi-line text input — used for custom word lists."""
 
+    # Initialize the multi-line input with its rect, font, placeholder, and cursor blink state.
     def __init__(self, rect, font: pygame.font.Font,
                  placeholder: str = "", max_chars: int = 2000):
         self.rect        = pygame.Rect(rect)
@@ -17,6 +18,7 @@ class TextArea:
         self._cursor_ms  = 0
         self._show_cur   = True
 
+    # Handle mouse clicks to activate, backspace, Enter (inserts newline), and typed characters.
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.active = self.rect.collidepoint(event.pos)
@@ -29,12 +31,14 @@ class TextArea:
             elif event.unicode and len(self.text) < self.max_chars:
                 self.text += event.unicode
 
+    # Advance the cursor blink timer and toggle visibility every 530 ms.
     def update(self, dt_ms: int):
         self._cursor_ms += dt_ms
         if self._cursor_ms >= 530:
             self._cursor_ms = 0
             self._show_cur  = not self._show_cur
 
+    # Break text into display lines that fit within max_w pixels, preserving paragraph breaks.
     def _wrap_lines(self, text: str, max_w: int) -> list[str]:
         result = []
         for paragraph in text.split("\n"):
@@ -53,6 +57,7 @@ class TextArea:
             result.append(row)
         return result
 
+    # Render the text area: background, border, visible wrapped lines or placeholder, and cursor.
     def draw(self, surface: pygame.Surface, enabled: bool = True):
         if enabled:
             bg_col     = WHITE

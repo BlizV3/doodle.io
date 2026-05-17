@@ -3,6 +3,7 @@ from client.utils import BORDER, ACCENT, TEXT_DARK, WHITE
 
 
 class InputBox:
+    # Initialize the input box with its rect, font, placeholder, and cursor blink state.
     def __init__(self, rect, font: pygame.font.Font,
                  placeholder: str = "", max_len: int = 48):
         self.rect        = pygame.Rect(rect)
@@ -28,12 +29,14 @@ class InputBox:
                 self.text += event.unicode
         return None
 
+    # Advance the cursor blink timer and toggle visibility every 530 ms.
     def update(self, dt_ms: int):
         self._cursor_ms += dt_ms
         if self._cursor_ms >= 530:
             self._cursor_ms = 0
             self._show_cur  = not self._show_cur
 
+    # Render the input field: background, border, text or placeholder, and blinking cursor.
     def draw(self, surface: pygame.Surface, enabled: bool = True):
         if enabled:
             bg_col     = WHITE

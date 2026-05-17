@@ -9,6 +9,7 @@ _ASSETS_DIR = os.path.normpath(
 _cache: dict[int, list[pygame.Surface]] = {}
 
 
+# Scale a surface to a circle of the given radius using an SRCALPHA mask.
 def circle_crop(surf: pygame.Surface, radius: int) -> pygame.Surface:
     d = radius * 2
     scaled = pygame.transform.smoothscale(surf, (d, d)).convert_alpha()
@@ -20,6 +21,7 @@ def circle_crop(surf: pygame.Surface, radius: int) -> pygame.Surface:
     return result
 
 
+# Load and circle-crop all pfp images from the pfps asset dir, cached per radius.
 def load_pfps(radius: int) -> list[pygame.Surface]:
     if radius in _cache:
         return _cache[radius]
@@ -38,6 +40,7 @@ def load_pfps(radius: int) -> list[pygame.Surface]:
     return images
 
 
+# Return a circle-cropped pfp surface by index, or None if the index is out of range.
 def get_pfp(idx: int, radius: int) -> "pygame.Surface | None":
     pfps = load_pfps(radius)
     return pfps[idx] if 0 <= idx < len(pfps) else None

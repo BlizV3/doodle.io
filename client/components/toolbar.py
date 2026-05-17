@@ -37,6 +37,7 @@ _ASSETS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "as
 _CURSOR_TOOLS = {TOOL_BRUSH, TOOL_FILL, TOOL_EYEDROPPER, TOOL_ERASER}
 
 
+# Load an asset image and scale it to the given square size.
 def _load_scaled(filename: str, size: int) -> pygame.Surface:
     path = os.path.join(_ASSETS_DIR, filename)
     img  = pygame.image.load(path).convert_alpha()
@@ -47,6 +48,7 @@ class Toolbar:
     """Color palette + brush sizes + icon tool buttons.
     Only interactive when active=True (drawer's turn)."""
 
+    # Load all tool icons and cursor images, set defaults, and apply the initial cursor state.
     def __init__(self, fonts: dict):
         self.fonts    = fonts
         self._active  = False
@@ -75,6 +77,7 @@ class Toolbar:
     def active(self) -> bool:
         return self._active
 
+    # Set the active flag and re-apply the cursor to match the new state.
     @active.setter
     def active(self, value: bool):
         self._active = value
@@ -84,6 +87,7 @@ class Toolbar:
     def tool(self) -> str:
         return self._tool
 
+    # Set the current tool and re-apply the cursor image to match.
     @tool.setter
     def tool(self, value: str):
         self._tool = value
@@ -95,6 +99,7 @@ class Toolbar:
 
     # ── Cursor ────────────────────────────────────────────────────────────────
 
+    # Switch the system cursor to the active tool's icon, or restore the arrow when inactive.
     def _apply_cursor(self):
         key = self._tool if (self._active and self._tool in _CURSOR_TOOLS) else None
         if key == self._last_cursor_key:
@@ -148,6 +153,7 @@ class Toolbar:
 
     # ── Render ────────────────────────────────────────────────────────────────
 
+    # Draw the toolbar panel with color swatches, brush size dots, and tool icon buttons.
     def render(self, surface: pygame.Surface, rect: pygame.Rect):
         draw_panel_alpha(surface, rect,
                          bg_rgba=(10, 22, 60, 38),
@@ -203,6 +209,7 @@ class Toolbar:
             if new_hov:
                 sounds.play("hover")
 
+    # Compute and return the rects for all right-aligned tool icon buttons.
     def _tool_buttons(self, rect: pygame.Rect) -> dict[str, pygame.Rect]:
         n     = len(_TOOL_KEYS)
         total = n * BTN_SIZE + (n - 1) * BTN_GAP

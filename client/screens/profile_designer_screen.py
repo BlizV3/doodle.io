@@ -31,6 +31,7 @@ _TOOL_COLORS = {
 
 
 class ProfileDesignerScreen:
+    # Set up the drawing canvas, tool/color/size controls, action buttons, and tool icons.
     def __init__(self, fonts: dict, prev_name: str = ""):
         self.fonts      = fonts
         self._prev_name = prev_name
@@ -87,6 +88,7 @@ class ProfileDesignerScreen:
 
     # ── helpers ───────────────────────────────────────────────────────────────
 
+    # Return (color, rect) pairs for all palette swatches, centred below the canvas.
     def _swatch_rects(self) -> list[tuple[tuple, pygame.Rect]]:
         total = len(PALETTE) * (_SWATCH_SIZE + _SWATCH_PAD) - _SWATCH_PAD
         sx    = _CANVAS_X + (_CANVAS_SIZE - total) // 2
@@ -96,6 +98,7 @@ class ProfileDesignerScreen:
             for i, col in enumerate(PALETTE)
         ]
 
+    # Return (cx, cy) centre coords for each brush-size dot, centred below the canvas.
     def _size_centers(self) -> list[tuple[int, int]]:
         total = len(BRUSH_SIZES) * _BRUSH_STEP
         bx    = _CANVAS_X + (_CANVAS_SIZE - total) // 2 + _BRUSH_STEP // 2
@@ -103,6 +106,7 @@ class ProfileDesignerScreen:
 
     # ── events ────────────────────────────────────────────────────────────────
 
+    # Route events to canvas drawing, undo/redo, color/size/tool selection, or action buttons.
     def handle_event(self, event) -> dict | None:
         # Sync canvas tool/color/size before passing events
         self._canvas.color = self._color
@@ -160,6 +164,7 @@ class ProfileDesignerScreen:
 
         return None
 
+    # Save the canvas as custom.png in the pfps dir, clear the pfp cache, and return a pfp_saved action.
     def _save_pfp(self) -> dict:
         assets_dir = os.path.normpath(
             os.path.join(os.path.dirname(__file__), "..", "assets", "pfps")
@@ -185,6 +190,7 @@ class ProfileDesignerScreen:
 
     # ── render ────────────────────────────────────────────────────────────────
 
+    # Draw the canvas, left-side preview circle, color/size/tool controls, and action buttons.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 

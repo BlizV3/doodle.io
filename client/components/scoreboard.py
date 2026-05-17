@@ -14,6 +14,7 @@ class Scoreboard:
     ROW_H      = 60
     HEADER_H   = 36
 
+    # Initialize the scoreboard with fonts and an empty player list.
     def __init__(self, fonts: dict):
         self.fonts   = fonts
         self.players: list[dict] = []   # [{name, score, is_drawing, pfp_idx}]
@@ -21,6 +22,7 @@ class Scoreboard:
     def update(self, players: list[dict]):
         self.players = players
 
+    # Draw the players panel with avatar, name, score, and a pencil icon for the current drawer.
     def render(self, surface: pygame.Surface, rect: pygame.Rect):
         draw_panel_alpha(surface, rect,
                          bg_rgba=(10, 22, 60, 38),

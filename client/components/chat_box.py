@@ -11,6 +11,7 @@ AVATAR_W      = 20
 MAX_MESSAGES  = 80
 
 
+# Derive a consistent accent color for a player name from its hash.
 def _name_color(name: str) -> tuple:
     h = abs(hash(name))
     return (max(80, (h >> 16) & 0xFF),
@@ -18,6 +19,7 @@ def _name_color(name: str) -> tuple:
             max(80,  h        & 0xFF))
 
 
+# Break a text string into lines that fit within max_w pixels using the given font.
 def _wrap(font, text: str, max_w: int) -> list[str]:
     words, row, rows = text.split(" "), "", []
     for w in words:
@@ -39,6 +41,7 @@ class ChatBox:
     Each stored message: {"sender": str, "text": str, "guessed": bool, "system": bool}
     """
 
+    # Initialize the chat with empty message list, zero scroll, and no bound rect.
     def __init__(self, fonts: dict, is_drawing: bool = False):
         self.fonts       = fonts
         self.is_drawing  = is_drawing
@@ -48,6 +51,7 @@ class ChatBox:
         self._input: InputBox | None   = None
         self._rect: pygame.Rect | None = None
 
+    # Bind the chat to a screen rect and create the guess input box at the bottom.
     def set_rect(self, rect: pygame.Rect):
         self._rect = rect
         input_rect = pygame.Rect(rect.x + 8, rect.bottom - 52, rect.width - 16, 44)
@@ -56,6 +60,7 @@ class ChatBox:
 
     # ── Public API ────────────────────────────────────────────────────────────
 
+    # Append a regular chat message and reset scroll to show the newest message.
     def add_message(self, sender: str, text: str, guessed: bool = False):
         self._messages.append({"sender": sender, "text": text,
                                 "guessed": guessed, "system": False})
@@ -63,6 +68,7 @@ class ChatBox:
             self._messages.pop(0)
         self._scroll = 0
 
+    # Append a system notice with an optional custom color and reset scroll.
     def add_system(self, text: str, color=None):
         self._messages.append({"sender": "", "text": text,
                                 "guessed": False, "system": True,
@@ -85,6 +91,7 @@ class ChatBox:
             self._scroll = max(0, self._scroll - event.y * 20)
         return None
 
+    # Tick the input box and update the placeholder text based on whether the player has guessed.
     def update(self, dt_ms: int):
         if self._input:
             self._input.placeholder = (
@@ -94,6 +101,7 @@ class ChatBox:
 
     # ── Render ────────────────────────────────────────────────────────────────
 
+    # Draw the scrollable message log and the guess input box (or a drawing label for drawers).
     def render(self, surface: pygame.Surface):
         if not self._rect:
             return

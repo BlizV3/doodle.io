@@ -16,6 +16,7 @@ W, H = 1280, 720
 _ASSETS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "assets"))
 
 
+# Load an asset image and scale it to the given square size.
 def _load_icon(name: str, size: int) -> pygame.Surface:
     path = os.path.join(_ASSETS_DIR, name)
     img  = pygame.image.load(path).convert_alpha()
@@ -55,6 +56,7 @@ _CREATE_BTN_Y = 626
 
 
 class CreateRoomScreen:
+    # Build all setting rows, input boxes, toggle buttons, and the back icon.
     def __init__(self, fonts: dict):
         self.fonts      = fonts
         self.error      = ""
@@ -100,10 +102,12 @@ class CreateRoomScreen:
     def _plus_r(self, idx: int) -> pygame.Rect:
         return pygame.Rect(_PLUS_X, self._row_cy(idx) - _BTN_SZ // 2, _BTN_SZ, _BTN_SZ)
 
+    # Return the bounding rect for the custom-words ON/OFF toggle button.
     def _toggle_r(self) -> pygame.Rect:
         cy = self._row_cy(len(_SETTINGS))
         return pygame.Rect(_MINUS_X, cy - 22, _PLUS_X + _BTN_SZ - _MINUS_X, 44)
 
+    # Return the bounding rect for the room-code ON/OFF toggle button.
     def _code_toggle_r(self) -> pygame.Rect:
         cy = self._row_cy(len(_SETTINGS) + 1)
         return pygame.Rect(_MINUS_X, cy - 22, _PLUS_X + _BTN_SZ - _MINUS_X, 44)
@@ -114,6 +118,7 @@ class CreateRoomScreen:
 
     # ── events ────────────────────────────────────────────────────────────────
 
+    # Route input to the name box, word area, code box, or setting increment/decrement buttons.
     def handle_event(self, event) -> dict | None:
         self._name_box.handle_event(event)
         if self._custom_words:
@@ -172,6 +177,7 @@ class CreateRoomScreen:
 
         return None
 
+    # Collect current settings into a dict and return a create action.
     def _build_result(self) -> dict:
         s = dict(self._values)
         s["room_name"] = self._name_box.text.strip() or "My Room"
@@ -184,6 +190,7 @@ class CreateRoomScreen:
         s["room_code"] = code
         return {"action": "create", "settings": s}
 
+    # Tick all text input boxes so cursor blinking stays alive.
     def update(self, dt_ms: int):
         self._name_box.update(dt_ms)
         self._word_area.update(dt_ms)
@@ -191,6 +198,7 @@ class CreateRoomScreen:
 
     # ── render ────────────────────────────────────────────────────────────────
 
+    # Draw the room settings screen with all rows, toggles, inputs, and the Create button.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 

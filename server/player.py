@@ -2,6 +2,7 @@ import socket
 
 
 class Player:
+    # Store the socket connection, address, and name; initialize all game-state flags.
     def __init__(self, conn: socket.socket, addr, name: str = ""):
         self.conn = conn
         self.addr = addr
@@ -11,10 +12,12 @@ class Player:
         self.is_drawing: bool = False
         self.has_guessed: bool = False  # this round
 
+    # Clear the per-round drawing and guessed flags at the start of each new turn.
     def reset_round(self):
         self.is_drawing = False
         self.has_guessed = False
 
+    # Serialize the player's state into a dict for PLAYER_LIST broadcast messages.
     def to_dict(self) -> dict:
         return {
             "name":        self.name,

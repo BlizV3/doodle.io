@@ -31,6 +31,7 @@ CANVAS_H    = H - HUD_H - TOOLBAR_H
 
 
 class GameScreen:
+    # Create all game components and initialize overlay state variables.
     def __init__(self, fonts: dict, local_name: str):
         self.fonts      = fonts
         self.local_name = local_name
@@ -142,6 +143,7 @@ class GameScreen:
 
     # ── Events → outgoing messages ────────────────────────────────────────────
 
+    # Forward input to the active overlay, canvas, toolbar, and chat; return outgoing messages.
     def handle_event(self, event) -> list[dict]:
         msgs: list[dict] = []
 
@@ -196,6 +198,7 @@ class GameScreen:
 
         return msgs
 
+    # Advance the chat cursor and decrement the round-end overlay countdown.
     def tick(self, dt_ms: int):
         self.chat.update(dt_ms)
         if self._round_end_overlay:
@@ -205,6 +208,7 @@ class GameScreen:
 
     # ── Render ────────────────────────────────────────────────────────────────
 
+    # Render all game components and any active overlay (round-end, word-choice, tool cursor).
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 
@@ -236,6 +240,7 @@ class GameScreen:
         if self.toolbar.active and self.toolbar.tool == TOOL_EYEDROPPER:
             self._draw_eyedropper_preview(surface)
 
+    # Show a color-preview circle near the cursor while the eyedropper tool is active.
     def _draw_eyedropper_preview(self, surface: pygame.Surface):
         mx, my = pygame.mouse.get_pos()
         if self._canvas_rect.collidepoint(mx, my):
@@ -248,6 +253,7 @@ class GameScreen:
         pygame.draw.circle(surface, color,      (cx_, cy_), 11)
         pygame.draw.circle(surface, (0, 0, 0),  (cx_, cy_), 11, 2)
 
+    # Draw the round-end overlay showing the revealed word and top player scores.
     def _draw_round_end(self, surface: pygame.Surface):
         overlay = pygame.Surface((W, H), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 160))
@@ -271,6 +277,7 @@ class GameScreen:
                       W // 2 + 80, y, anchor="midright")
             y += 24
 
+    # Draw the word-selection overlay with clickable buttons for each word option.
     def _draw_word_choice(self, surface: pygame.Surface):
         overlay = pygame.Surface((W, H), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 170))
@@ -304,6 +311,7 @@ class GameScreen:
             if new_hov:
                 sounds.play("hover")
 
+    # Return the word the user clicked on in the word-choice overlay, or None.
     def _hit_word_choice(self, pos) -> str | None:
         btn_w = 150
         total = len(self._word_choices) * btn_w + (len(self._word_choices) - 1) * 16

@@ -6,12 +6,14 @@ from server.word_manager import WordManager
 
 
 class GameManager:
+    # Initialize with a shared WordManager, an empty room map, a thread lock, and an ID counter.
     def __init__(self):
         self._word_mgr = WordManager()
         self._rooms: dict[str, Room] = {}
         self._lock = threading.Lock()
         self._next_id = 1
 
+    # Return lobby metadata from the first active room for the LAN beacon, or None if no rooms.
     def get_beacon_info(self) -> dict | None:
         with self._lock:
             for room in self._rooms.values():
@@ -56,6 +58,7 @@ class GameManager:
                     return True, ""
         return False, "No room available."
 
+    # Remove a player from their room and clean up the room entry if it becomes empty.
     def remove_player(self, player: Player, room: Room):
         room.remove_player(player)
         with self._lock:

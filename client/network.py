@@ -10,17 +10,20 @@ from shared.protocol import pack, unpack, DISCONNECT
 
 
 class NetworkClient:
+    # Initialize an idle client with no socket, an empty message queue, and a stopped flag.
     def __init__(self):
         self._sock: socket.socket | None = None
         self._queue: queue.Queue = queue.Queue()
         self._running = False
 
+    # Open a TCP connection to host:port and start the background receive thread.
     def connect(self, host: str, port: int):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.connect((host, port))
         self._running = True
         threading.Thread(target=self._recv_loop, daemon=True).start()
 
+    # Serialize and send a protocol message; enqueue a DISCONNECT sentinel on socket error.
     def send(self, msg_type: str, **kwargs):
         if self._sock and self._running:
             try:
@@ -38,6 +41,7 @@ class NetworkClient:
                 break
         return msgs
 
+    # Stop the receive loop and close the underlying socket.
     def disconnect(self):
         self._running = False
         if self._sock:
@@ -47,6 +51,7 @@ class NetworkClient:
                 pass
             self._sock = None
 
+    # Background thread: read bytes, split on newlines, and push parsed JSON messages onto the queue.
     def _recv_loop(self):
         buf = b""
         while self._running:

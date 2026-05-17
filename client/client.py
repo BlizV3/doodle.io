@@ -35,6 +35,7 @@ TITLE = "doodle.io"
 _SERVER_PORT = 5555
 
 
+# Spawn the server subprocess and wait up to 5 seconds for the TCP port to become available.
 def _launch_server() -> subprocess.Popen | None:
     root = os.path.join(os.path.dirname(__file__), "..")
     proc = subprocess.Popen(
@@ -53,6 +54,7 @@ def _launch_server() -> subprocess.Popen | None:
     return proc
 
 
+# Initialize pygame, run the screen state machine, and pump the network message queue each frame.
 def main():
     pygame.init()
     sounds.init()
@@ -340,6 +342,7 @@ def main():
     sys.exit(0)
 
 
+# Route an outgoing game message dict to the correct net.send() call.
 def _send_game_msg(net: NetworkClient, msg: dict):
     t = msg.get("type")
     if t == DRAW:

@@ -15,6 +15,7 @@ class DrawingCanvas:
       {"type": "eyedropper_pick", "color": [r, g, b]}
     """
 
+    # Create the white drawing surface, initialize tool state, and save a blank undo snapshot.
     def __init__(self, width: int, height: int):
         self.width   = width
         self.height  = height
@@ -35,6 +36,7 @@ class DrawingCanvas:
 
     # ── Local input ──────────────────────────────────────────────────────────
 
+    # Translate mouse events into draw strokes or tool actions and return protocol messages.
     def handle_event(self, event, canvas_rect: pygame.Rect) -> list[dict]:
         if not self.active:
             return []
@@ -87,6 +89,7 @@ class DrawingCanvas:
 
         return msgs
 
+    # Return the effective draw color and radius; the eraser uses white at 3× the brush size.
     def _brush_params(self) -> tuple[tuple, int]:
         if self.tool == TOOL_ERASER:
             return (255, 255, 255), self.size * 3
@@ -94,6 +97,7 @@ class DrawingCanvas:
 
     # ── Remote events ────────────────────────────────────────────────────────
 
+    # Apply a remote draw message as a single dot or an interpolated line.
     def apply_draw(self, msg: dict):
         color = tuple(msg["color"])
         size  = msg["size"]
@@ -183,6 +187,7 @@ class DrawingCanvas:
 
     # ── Eyedropper tool ───────────────────────────────────────────────────────
 
+    # Sample the canvas pixel color at the given local coordinates, clamped to bounds.
     def get_color_at(self, x: int, y: int) -> tuple[int, int, int]:
         x = max(0, min(int(x), self.width  - 1))
         y = max(0, min(int(y), self.height - 1))
@@ -190,6 +195,7 @@ class DrawingCanvas:
 
     # ── Undo / Redo ──────────────────────────────────────────────────────────
 
+    # Push the current surface onto the undo history, truncating any redo entries; cap at 50.
     def _save_snapshot(self):
         if self._hist_idx < len(self._history) - 1:
             self._history = self._history[:self._hist_idx + 1]
@@ -201,6 +207,7 @@ class DrawingCanvas:
             self._history.pop(0)
             self._hist_idx -= 1
 
+    # Step back one snapshot in the undo history and restore it; return False if at start.
     def undo(self) -> bool:
         if self._hist_idx > 0:
             self._hist_idx -= 1
@@ -210,6 +217,7 @@ class DrawingCanvas:
             return True
         return False
 
+    # Step forward one snapshot in the redo history and restore it; return False if at end.
     def redo(self) -> bool:
         if self._hist_idx < len(self._history) - 1:
             self._hist_idx += 1
@@ -233,6 +241,7 @@ class DrawingCanvas:
 
     # ── Render ───────────────────────────────────────────────────────────────
 
+    # Blit the drawing surface and draw a 1px grey border around it.
     def render(self, screen: pygame.Surface, x: int, y: int):
         screen.blit(self.surface, (x, y))
         pygame.draw.rect(screen, (200, 200, 200),
@@ -243,6 +252,7 @@ class DrawingCanvas:
     def _draw_circle(self, x, y, color, size):
         pygame.draw.circle(self.surface, color, (x, y), max(1, size // 2))
 
+    # Draw a line segment with circular end caps to produce a smooth brush stroke.
     def _draw_line(self, x1, y1, x2, y2, color, size):
         pygame.draw.line(self.surface, color, (x1, y1), (x2, y2), max(1, size))
         pygame.draw.circle(self.surface, color, (x1, y1), max(1, size // 2))

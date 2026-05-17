@@ -38,6 +38,7 @@ AVATAR_COLORS = [
 
 # ── Low-level helpers ─────────────────────────────────────────────────────────
 
+# Draw a filled rounded rectangle with a 2px border.
 def draw_panel(surface: pygame.Surface, rect, bg=PANEL, border_color=BORDER, radius=8):
     pygame.draw.rect(surface, bg, rect, border_radius=radius)
     pygame.draw.rect(surface, border_color, rect, 2, border_radius=radius)
@@ -56,6 +57,7 @@ def draw_panel_alpha(surface: pygame.Surface, rect,
         surface.blit(brd, rect.topleft)
 
 
+# Render text at (x, y) using the named anchor attribute of the rect for alignment.
 def draw_text(surface: pygame.Surface, text: str, font: pygame.font.Font,
               color, x: int, y: int, anchor: str = "topleft") -> pygame.Rect:
     surf = font.render(text, True, color)
@@ -116,6 +118,7 @@ def make_fonts() -> dict[str, pygame.font.Font]:
         except Exception:
             pass
 
+    # Create a SysFont at the given size, falling back to the default pygame font.
     def f(size, bold=False):
         try:
             return pygame.font.SysFont(base_name or "", size, bold=bold)

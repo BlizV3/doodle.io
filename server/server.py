@@ -31,6 +31,7 @@ _ever_had_client = False
 _shutdown        = threading.Event()
 
 
+# Increment the connected-client counter and record that at least one client has joined.
 def _on_client_connect():
     global _client_count, _ever_had_client
     with _client_lock:
@@ -38,6 +39,7 @@ def _on_client_connect():
         _ever_had_client  = True
 
 
+# Decrement the counter; set the shutdown event when the last client disconnects.
 def _on_client_disconnect():
     global _client_count
     with _client_lock:
@@ -46,6 +48,7 @@ def _on_client_disconnect():
             _shutdown.set()
 
 
+# Per-client thread: parse incoming messages and route them to the appropriate room handler.
 def handle_client(conn: socket.socket, addr, game_mgr: GameManager):
     player  = Player(conn, addr)
     room    = None
@@ -130,6 +133,7 @@ def handle_client(conn: socket.socket, addr, game_mgr: GameManager):
             _on_client_disconnect()
 
 
+# Background thread that broadcasts a UDP server-beacon packet every 2 seconds.
 def _beacon_worker(port: int, game_mgr):
     import time
     try:
@@ -173,6 +177,7 @@ def _beacon_worker(port: int, game_mgr):
     sock.close()
 
 
+# Parse args, start the TCP accept loop and beacon thread, and run until all clients disconnect.
 def main():
     parser = argparse.ArgumentParser(description="doodle.io server")
     parser.add_argument("--host", default=HOST)

@@ -11,11 +11,13 @@ _ASSETS_DIR = os.path.normpath(
 
 # ── asset loaders (identical to toolbar.py) ───────────────────────────────────
 
+# Load an asset image and scale it to the given square size.
 def _load_scaled(filename: str, size: int) -> pygame.Surface:
     path = os.path.join(_ASSETS_DIR, filename)
     img  = pygame.image.load(path).convert_alpha()
     return pygame.transform.smoothscale(img, (size, size))
 
+# Load and scale the default background image to 1280×720.
 def _load_bg() -> pygame.Surface:
     path = os.path.join(_ASSETS_DIR, "backgrounds", "default.png")
     img  = pygame.image.load(path).convert()
@@ -28,6 +30,7 @@ class MainMenuScreen:
     _PANEL_HOVER  = (18, 36, 90, 60)
     _BORDER_COL   = (10, 22, 60, 64)   # same navy, 25 % opacity
 
+    # Load background, card icons, and compute button rects for JOIN and CREATE.
     def __init__(self, fonts: dict, name: str, pfp_idx: int = 0, pfp_surf=None):
         self.fonts   = fonts
         self.name    = name
@@ -58,6 +61,7 @@ class MainMenuScreen:
 
     # ── events ────────────────────────────────────────────────────────────────
 
+    # Detect clicks on the CREATE or JOIN buttons and return the corresponding action dict.
     def handle_event(self, event) -> dict | None:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self._create_btn.collidepoint(event.pos):
@@ -73,6 +77,7 @@ class MainMenuScreen:
 
     # ── render ────────────────────────────────────────────────────────────────
 
+    # Draw the background, logo thumbnail, and the two large menu card buttons.
     def render(self, surface: pygame.Surface):
         surface.blit(self._bg, (0, 0))
 
@@ -99,6 +104,7 @@ class MainMenuScreen:
 
     # ── helpers ───────────────────────────────────────────────────────────────
 
+    # Draw a semi-transparent card button with a centred icon and a label pinned to the bottom.
     def _draw_btn(self, surface: pygame.Surface, btn: pygame.Rect,
                   icon: pygame.Surface, label: str):
         mx, my  = pygame.mouse.get_pos()

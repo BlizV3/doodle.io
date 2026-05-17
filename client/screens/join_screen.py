@@ -62,6 +62,7 @@ _ROW_H = 64
 _ROW_S = 74    # stride between rows
 
 
+# Listen on the UDP beacon port for ~2.5 s and collect unique server announcements.
 def _scan_lan() -> list[dict]:
     seen: dict[tuple, dict] = {}
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -100,6 +101,7 @@ def _scan_lan() -> list[dict]:
 
 
 class JoinScreen:
+    # Build all input boxes, server-list panel rects, code popup widgets, and start a LAN scan.
     def __init__(self, fonts: dict):
         self.fonts   = fonts
         self.error   = ""
@@ -145,6 +147,7 @@ class JoinScreen:
 
     # ── scan ──────────────────────────────────────────────────────────────────
 
+    # Kick off a background thread to refresh the LAN server list.
     def _start_scan(self):
         if self._scanning:
             return
@@ -153,16 +156,19 @@ class JoinScreen:
         self._sel      = -1
         threading.Thread(target=self._scan_worker, daemon=True).start()
 
+    # Run the LAN scan in a background thread and store the results.
     def _scan_worker(self):
         self._servers  = _scan_lan()
         self._scanning = False
 
     # ── layout helpers ────────────────────────────────────────────────────────
 
+    # Return the bounding rect for server list row i.
     def _row_rect(self, i: int) -> pygame.Rect:
         return pygame.Rect(_PANEL.x + 10, _PANEL.y + 10 + i * _ROW_S,
                            _PANEL.width - 20, _ROW_H)
 
+    # Return the rect for the Join button inside server list row i.
     def _join_btn_rect(self, i: int) -> pygame.Rect:
         row = self._row_rect(i)
         return pygame.Rect(row.right - 74, row.centery - 18, 64, 36)
@@ -172,6 +178,7 @@ class JoinScreen:
 
     # ── events ────────────────────────────────────────────────────────────────
 
+    # Route mouse and keyboard events to the popup, server list, or manual-connect inputs.
     def handle_event(self, event) -> dict | None:
         # Popup captures everything when active
         if self._popup_active:
@@ -223,6 +230,7 @@ class JoinScreen:
 
         return None
 
+    # Show the room-code entry popup for the server at the given list index.
     def _open_popup(self, idx: int):
         self._popup_srv_idx     = idx
         self._popup_active      = True
@@ -230,6 +238,7 @@ class JoinScreen:
         self._popup_input.text  = ""
         self._popup_input.active = True
 
+    # Validate the popup code against the server and return a connect action on success.
     def _submit_popup(self) -> dict | None:
         code = self._popup_input.text.strip()
         if not code:
@@ -243,6 +252,7 @@ class JoinScreen:
         self._popup_active = False
         return {"action": "connect", "host": s["host"], "port": s["port"], "room_code": code}
 
+    # Build a connect action from the selected server row or the manual host/port inputs.
     def _build_connect(self) -> dict | None:
         if 0 <= self._sel < len(self._servers):
             s = self._servers[self._sel]
@@ -260,6 +270,7 @@ class JoinScreen:
         code = self._code_box.text.strip()
         return {"action": "connect", "host": host, "port": port, "room_code": code}
 
+    # Tick all input boxes so cursor blinking stays alive.
     def update(self, dt_ms: int):
         self._host_box.update(dt_ms)
         self._port_box.update(dt_ms)
@@ -268,6 +279,7 @@ class JoinScreen:
 
     # ── render ────────────────────────────────────────────────────────────────
 
+    # Draw the server list panel, manual-connection inputs, and the optional code popup.
     def render(self, surface: pygame.Surface):
         surface.blit(get_background(), (0, 0))
 
@@ -392,6 +404,7 @@ class JoinScreen:
 
     # ── popup ─────────────────────────────────────────────────────────────────
 
+    # Draw the modal code-entry popup with a translucent veil over the screen.
     def _draw_code_popup(self, surface: pygame.Surface):
         veil = pygame.Surface((W, H), pygame.SRCALPHA)
         veil.fill((0, 0, 0, 165))

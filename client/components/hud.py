@@ -9,6 +9,7 @@ HINT_SPACE = 22   # px between hint characters
 class HUD:
     """Top bar: round info | word hint | timer."""
 
+    # Initialize the HUD with empty round label, hint, and timer; ready to receive update calls.
     def __init__(self, fonts: dict, height: int = 80):
         self.fonts       = fonts
         self.height      = height
@@ -18,6 +19,7 @@ class HUD:
         self.drawer_name = ""
         self.is_drawing  = False   # local player is the drawer
 
+    # Store all round-start data so the HUD reflects the current round state.
     def update_round(self, drawer: str, round_n: int, total: int, hint: list[str],
                      time_secs: int, local_is_drawing: bool):
         self.drawer_name = drawer
@@ -32,6 +34,7 @@ class HUD:
     def update_timer(self, remaining: int):
         self.timer = remaining
 
+    # Draw the HUD bar: round label, drawer name, word hint, and the countdown timer.
     def render(self, surface: pygame.Surface, rect: pygame.Rect):
         draw_panel_alpha(surface, rect,
                          bg_rgba=(10, 22, 60, 38),
@@ -55,6 +58,7 @@ class HUD:
         draw_text(surface, str(self.timer), self.fonts["xl"], timer_color,
                   rect.right - 20, rect.centery, anchor="midright")
 
+    # Draw each hint character centered in the HUD, using underlines for hidden letters.
     def _draw_hint(self, surface: pygame.Surface, rect: pygame.Rect):
         if not self.hint:
             return
